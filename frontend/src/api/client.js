@@ -54,7 +54,21 @@ let mockDatabase = {
       abstract: 'Foundational multi-table relational queries, CROSS JOIN vs FULL OUTER JOIN, and handling NULL matches.',
       if_learned: false,
       associated_skills: ['sql_joins'],
-      desired_outcome_when_completed: [{ name: 'SQL Joins', level: 'intermediate' }]
+      desired_outcome_when_completed: [{ name: 'SQL Joins', level: 'intermediate' }],
+      recommended_resources: [
+        {
+          title: 'PostgreSQL Official Documentation: Queries & Joins',
+          type: 'documentation',
+          reason: 'Clear reference on join syntax and join semantics',
+          url: 'https://www.postgresql.org/docs/current/queries-table-expressions.html#QUERIES-FROM'
+        },
+        {
+          title: 'SQLZoo Join Tutorial',
+          type: 'course',
+          reason: 'Interactive hands-on browser practice with multi-table queries',
+          url: 'https://sqlzoo.net/wiki/The_JOIN_operation'
+        }
+      ]
     },
     {
       id: 'Session 2',
@@ -62,7 +76,15 @@ let mockDatabase = {
       abstract: 'Clustered vs non-clustered indexes, B-Trees, selectivity, and avoiding index scan penalties.',
       if_learned: false,
       associated_skills: ['indexing_strategies'],
-      desired_outcome_when_completed: [{ name: 'Indexing Strategies', level: 'intermediate' }]
+      desired_outcome_when_completed: [{ name: 'Indexing Strategies', level: 'intermediate' }],
+      recommended_resources: [
+        {
+          title: 'Use The Index, Luke! - A Guide to Database Performance',
+          type: 'article',
+          reason: 'Comprehensive guide explaining index architecture & search paths',
+          url: 'https://use-the-index-luke.com/'
+        }
+      ]
     },
     {
       id: 'Session 3',
@@ -70,7 +92,15 @@ let mockDatabase = {
       abstract: 'Reading execution plans, cost estimation, bottleneck detection, and query refactoring.',
       if_learned: false,
       associated_skills: ['query_execution_plans'],
-      desired_outcome_when_completed: [{ name: 'Query Optimization', level: 'advanced' }]
+      desired_outcome_when_completed: [{ name: 'Query Optimization', level: 'advanced' }],
+      recommended_resources: [
+        {
+          title: 'PostgreSQL EXPLAIN Explained',
+          type: 'article',
+          reason: 'Deep-dive into interpreting cost metrics and node types',
+          url: 'https://www.postgresql.org/docs/current/using-explain.html'
+        }
+      ]
     }
   ],
   quizzes: {
@@ -344,6 +374,46 @@ export const apiClient = {
         experience_level: 'beginner',
         completed_courses: [],
         objectives: ['Write efficient multi-table SQL queries', 'Understand indexing and query plans']
+      };
+    }
+  },
+
+  /**
+   * Add a custom resource link to a specific session
+   */
+  async addResource(sessionId, sessionIndex, resource) {
+    try {
+      const response = await fetch(`${API_BASE}/session/${sessionId}/session/${sessionIndex}/resource`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(resource)
+      });
+      if (!response.ok) throw new Error('Network response not ok');
+      return await response.json();
+    } catch (err) {
+      console.warn('[API Client] Backend not detected, using mock resource addition.', err);
+      if (mockDatabase.currentPath[sessionIndex]) {
+        if (!mockDatabase.currentPath[sessionIndex].recommended_resources) {
+          mockDatabase.currentPath[sessionIndex].recommended_resources = [];
+        }
+        mockDatabase.currentPath[sessionIndex].recommended_resources.push({
+          title: resource.title,
+          url: resource.url,
+          type: resource.type || 'custom',
+          reason: resource.reason || 'Added by learner'
+        });
+      }
+      return {
+        session_id: sessionId,
+        user_id: mockDatabase.userId,
+        current_index: mockDatabase.currentIndex,
+        is_completed: mockDatabase.isCompleted,
+        replan_count: mockDatabase.replanCount,
+        skill_gaps: mockDatabase.skillGaps,
+        mastery: { ...mockDatabase.mastery },
+        current_path: [...mockDatabase.currentPath],
+        last_quiz: mockDatabase.quizzes[mockDatabase.currentIndex],
+        explanation: null
       };
     }
   },

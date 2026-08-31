@@ -1,7 +1,33 @@
-import React from 'react';
-import { CheckCircle2, Circle, ArrowDown, BookOpen, AlertCircle, Award, MessageCircleQuestion, Link2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  CheckCircle2, 
+  Circle, 
+  ArrowDown, 
+  BookOpen, 
+  AlertCircle, 
+  MessageCircleQuestion, 
+  Link2, 
+  ExternalLink, 
+  Plus, 
+  X, 
+  Check 
+} from 'lucide-react';
 
-export default function RoadmapView({ currentPath, currentIndex, isCompleted, onSelectSession, onAskWhy }) {
+export default function RoadmapView({ 
+  currentPath, 
+  currentIndex, 
+  isCompleted, 
+  onSelectSession, 
+  onAskWhy,
+  onAddResource 
+}) {
+  const [activeAddIdx, setActiveAddIdx] = useState(null);
+  const [title, setTitle] = useState('');
+  const [url, setUrl] = useState('');
+  const [type, setType] = useState('article');
+  const [reason, setReason] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
   if (!currentPath || currentPath.length === 0) {
     return (
       <div className="paper-card" style={{ padding: '32px', textAlign: 'center' }}>
@@ -13,6 +39,45 @@ export default function RoadmapView({ currentPath, currentIndex, isCompleted, on
       </div>
     );
   }
+
+  const handleOpenAdd = (idx, e) => {
+    e.stopPropagation();
+    setActiveAddIdx(activeAddIdx === idx ? null : idx);
+    setTitle('');
+    setUrl('');
+    setType('article');
+    setReason('');
+  };
+
+  const handleSaveResource = async (idx, e) => {
+    e.preventDefault();
+    if (!title.trim() || !url.trim()) return;
+
+    let formattedUrl = url.trim();
+    if (!/^https?:\/\//i.test(formattedUrl)) {
+      formattedUrl = 'https://' + formattedUrl;
+    }
+
+    setIsSaving(true);
+    try {
+      if (onAddResource) {
+        await onAddResource(idx, {
+          title: title.trim(),
+          url: formattedUrl,
+          type: type || 'custom',
+          reason: reason.trim() || 'Added by learner'
+        });
+      }
+      setActiveAddIdx(null);
+      setTitle('');
+      setUrl('');
+      setReason('');
+    } catch (err) {
+      console.error('Failed to add resource:', err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="paper-card" style={{ padding: '24px' }}>
@@ -36,6 +101,7 @@ export default function RoadmapView({ currentPath, currentIndex, isCompleted, on
           const isPassed = session.if_learned || (idx < currentIndex);
           const isActive = idx === currentIndex && !isCompleted;
           const isRemedial = session.title.toLowerCase().includes('remedial') || session.title.toLowerCase().includes('drill');
+          const isAdding = activeAddIdx === idx;
 
           return (
             <div key={session.id || idx}>
@@ -132,20 +198,229 @@ export default function RoadmapView({ currentPath, currentIndex, isCompleted, on
                       </div>
                     )}
 
-                    {/* Recommended Resources */}
-                    {session.recommended_resources && session.recommended_resources.length > 0 && (
-                      <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        {session.recommended_resources.map((res, rIdx) => (
-                          <div key={rIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '5px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                            <Link2 size={12} style={{ marginTop: '3px', flexShrink: 0 }} />
-                            <span>
-                              <strong style={{ color: 'var(--text-body)' }}>{res.title}</strong>
-                              {res.type ? ` (${res.type})` : ''} — {res.reason}
-                            </span>
-                          </div>
-                        ))}
+                    {/* Recommended Resources List */}
+                    <div style={{ marginTop: '12px' }}>
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between',
+                        marginBottom: '6px'
+                      }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          Learning Resources
+                        </span>
+                        
+                        {onAddResource && (
+                          <button
+                            onClick={(e) => handleOpenAdd(idx, e)}
+                            style={{
+                              border: 'none',
+                              background: 'none',
+                              color: isAdding ? 'var(--text-muted)' : 'var(--ink-primary)',
+                              fontSize: '0.75rem',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              fontWeight: 500
+                            }}
+                          >
+                            {isAdding ? (
+                              <><X size={12} /> Cancel</>
+                            ) : (
+                              <><Plus size={12} /> Add Link</>
+                            )}
+                          </button>
+                        )}
                       </div>
-                    )}
+
+                      {session.recommended_resources && session.recommended_resources.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {session.recommended_resources.map((res, rIdx) => (
+                            <div 
+                              key={rIdx} 
+                              style={{ 
+                                display: 'flex', 
+                                alignItems: 'flex-start', 
+                                gap: '6px', 
+                                fontSize: '0.78rem', 
+                                color: 'var(--text-muted)',
+                                background: 'var(--bg-card)',
+                                padding: '6px 8px',
+                                borderRadius: '6px',
+                                border: '1px solid var(--border-subtle)'
+                              }}
+                            >
+                              <Link2 size={13} style={{ marginTop: '2px', flexShrink: 0, color: 'var(--text-dim)' }} />
+                              <div style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word' }}>
+                                {res.url ? (
+                                  <a 
+                                    href={res.url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{
+                                      color: 'var(--ink-primary)',
+                                      fontWeight: 600,
+                                      textDecoration: 'none',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px'
+                                    }}
+                                  >
+                                    <span>{res.title}</span>
+                                    <ExternalLink size={11} style={{ flexShrink: 0 }} />
+                                  </a>
+                                ) : (
+                                  <strong style={{ color: 'var(--text-body)' }}>{res.title}</strong>
+                                )}
+                                {res.type ? (
+                                  <span style={{ 
+                                    fontSize: '0.7rem', 
+                                    background: 'var(--bg-canvas-subtle)', 
+                                    padding: '1px 5px', 
+                                    borderRadius: '3px',
+                                    marginLeft: '6px',
+                                    color: 'var(--text-muted)'
+                                  }}>
+                                    {res.type}
+                                  </span>
+                                ) : null}
+                                {res.reason && (
+                                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                    {res.reason}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontStyle: 'italic', margin: '2px 0' }}>
+                          No resources attached yet.
+                        </p>
+                      )}
+
+                      {/* Inline Add Resource Form */}
+                      {isAdding && (
+                        <form 
+                          onSubmit={(e) => handleSaveResource(idx, e)}
+                          onClick={(e) => e.stopPropagation()}
+                          style={{
+                            marginTop: '8px',
+                            padding: '12px',
+                            background: 'var(--bg-card)',
+                            border: '1px solid var(--border-strong)',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                              Add Study Link / Resource
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => handleOpenAdd(idx, e)}
+                              style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+
+                          <input
+                            type="text"
+                            placeholder="Resource title (e.g. Official Docs, Tutorial Video)"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            required
+                            style={{
+                              padding: '6px 10px',
+                              fontSize: '0.8rem',
+                              border: '1px solid var(--border-subtle)',
+                              borderRadius: '4px',
+                              outline: 'none',
+                              width: '100%'
+                            }}
+                          />
+
+                          <input
+                            type="url"
+                            placeholder="https://example.com/guide"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            required
+                            style={{
+                              padding: '6px 10px',
+                              fontSize: '0.8rem',
+                              border: '1px solid var(--border-subtle)',
+                              borderRadius: '4px',
+                              outline: 'none',
+                              width: '100%'
+                            }}
+                          />
+
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px' }}>
+                            <select
+                              value={type}
+                              onChange={(e) => setType(e.target.value)}
+                              style={{
+                                padding: '6px 8px',
+                                fontSize: '0.78rem',
+                                border: '1px solid var(--border-subtle)',
+                                borderRadius: '4px',
+                                background: '#fff'
+                              }}
+                            >
+                              <option value="article">Article / Doc</option>
+                              <option value="course">Course / Tutorial</option>
+                              <option value="video">Video</option>
+                              <option value="project">Project / Repo</option>
+                              <option value="notes">Personal Notes</option>
+                              <option value="custom">Other</option>
+                            </select>
+
+                            <input
+                              type="text"
+                              placeholder="Short note or why this fits (optional)"
+                              value={reason}
+                              onChange={(e) => setReason(e.target.value)}
+                              style={{
+                                padding: '6px 10px',
+                                fontSize: '0.78rem',
+                                border: '1px solid var(--border-subtle)',
+                                borderRadius: '4px',
+                                outline: 'none'
+                              }}
+                            />
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', marginTop: '4px' }}>
+                            <button
+                              type="button"
+                              onClick={(e) => handleOpenAdd(idx, e)}
+                              className="btn-secondary"
+                              style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={isSaving || !title.trim() || !url.trim()}
+                              className="btn-primary"
+                              style={{ padding: '4px 12px', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                            >
+                              <Check size={12} />
+                              {isSaving ? 'Saving...' : 'Add Link'}
+                            </button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
 
                     {/* Ask why this session was recommended */}
                     {onAskWhy && (

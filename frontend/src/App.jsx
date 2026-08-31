@@ -46,6 +46,17 @@ export default function App() {
     }
   };
 
+  // Add a custom study link or resource to a session
+  const handleAddResource = async (sessionIndex, resource) => {
+    if (!session) return;
+    try {
+      const response = await apiClient.addResource(session.session_id, sessionIndex, resource);
+      setSession(response);
+    } catch (err) {
+      console.error('Failed to add resource:', err);
+    }
+  };
+
   // Reset to create new session
   const handleResetSession = () => {
     setSession(null);
@@ -175,6 +186,7 @@ export default function App() {
                 currentIndex={session.current_index}
                 isCompleted={session.is_completed}
                 onAskWhy={setPrefillQuestion}
+                onAddResource={handleAddResource}
               />
             </div>
 

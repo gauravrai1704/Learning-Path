@@ -36,6 +36,13 @@ class ExplainRequest(BaseModel):
     question: str
 
 
+class AddResourceRequest(BaseModel):
+    title: str
+    url: str
+    type: str = "custom"
+    reason: str = "Added by learner"
+
+
 def to_frontend_shape(session_id: str, state: dict, is_completed: bool = False) -> dict:
     """Translate backend LearningState into the shape frontend/src/api/client.js expects."""
     quiz_result = state.get("quiz_result") or {}
@@ -126,6 +133,37 @@ def explain_recommendation(session_id: str, req: ExplainRequest):
     return result
 
 
+@app.post("/session/{session_id}/session/{session_index}/resource")
+def add_resource(session_id: str, session_index: int, req: AddResourceRequest):
+    """Add a custom resource link to a specific session in the active learning path."""
+    config = {"configurable": {"thread_id": session_id}}
+    state = graph.get_state(config).values
+
+    if not state:
+        raise HTTPException(status_code=404, detail="Session not found.")
+
+    current_path = list(state.get("current_path", []))
+    if session_index < 0 or session_index >= len(current_path):
+        raise HTTPException(status_code=400, detail="Invalid session index.")
+
+    target_session = dict(current_path[session_index])
+    resources = list(target_session.get("recommended_resources", []))
+    resources.append({
+        "title": req.title,
+        "url": req.url,
+        "type": req.type,
+        "reason": req.reason,
+    })
+    target_session["recommended_resources"] = resources
+    current_path[session_index] = target_session
+
+    graph.update_state(config, {"current_path": current_path})
+    updated_state = graph.get_state(config).values
+    is_completed = updated_state.get("current_index", 0) >= len(current_path)
+    return to_frontend_shape(session_id, updated_state, is_completed=is_completed)
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
+

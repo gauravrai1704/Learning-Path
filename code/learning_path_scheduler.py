@@ -33,6 +33,7 @@ class RecommendedResource(BaseModel):
     title: str = Field(..., description="Name of the recommended course, project, or resource")
     type: str = Field(..., description="One of: course, project, article, documentation, video")
     reason: str = Field(..., description="<=20 words on why this resource fits this session")
+    url: Optional[str] = Field(default=None, description="Direct URL, documentation link, or tutorial link to the resource")
 
 
 class SessionItem(BaseModel):
@@ -76,7 +77,7 @@ learning_path_output_format = """
                 {"name": "Skill 1", "level": "intermediate"}
             ],
             "recommended_resources": [
-                {"title": "Name of course/project/resource", "type": "course", "reason": "Why it fits, <=20 words"}
+                {"title": "Name of course/project/resource", "type": "course", "reason": "Why it fits, <=20 words", "url": "https://example.com/resource"}
             ]
         }
     ]
@@ -95,7 +96,9 @@ You will be given one of three tasks (A, B, or C). Follow the rules for that tas
 3. **Quality over Quantity**: Prefer a short, high-quality path (1-10 sessions).
 4. **Recommend Resources**: Every session must include 1-3 `recommended_resources`
    (real, well-known course names, project ideas, or documentation/article
-   titles that teach that session's skills). Prefer widely-known, genuinely
+   titles that teach that session's skills). For each resource, provide an authentic `url`
+   (e.g., official docs like `https://docs.python.org/3/`, reputable learning platforms,
+   or GitHub repos) when applicable. Prefer widely-known, genuinely
    existing resources over invented ones; if unsure, recommend a project-based
    resource instead (e.g. "Build a small X to practice Y") rather than a
    fabricated course name.
