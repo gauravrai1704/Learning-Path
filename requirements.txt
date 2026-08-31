@@ -1,0 +1,6 @@
+langchain-core
+langchain-openai
+langgraph
+pydantic
+python-dotenv
+networkx

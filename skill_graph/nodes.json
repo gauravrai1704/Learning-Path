@@ -1,0 +1,149 @@
+[
+  {
+    "id": "python_basics",
+    "name": "Python Basics",
+    "description": "Core Python syntax, data structures, functions, and control flow.",
+    "tags": ["programming", "python"],
+    "difficulty": "beginner"
+  },
+  {
+    "id": "git_version_control",
+    "name": "Git Version Control",
+    "description": "Tracking changes, branching, merging, and collaborating with Git.",
+    "tags": ["tooling"],
+    "difficulty": "beginner"
+  },
+  {
+    "id": "sql_basics",
+    "name": "SQL Basics",
+    "description": "SELECT/WHERE/GROUP BY and other fundamentals of querying relational data.",
+    "tags": ["sql", "data"],
+    "difficulty": "beginner"
+  },
+  {
+    "id": "sql_joins",
+    "name": "SQL Joins",
+    "description": "Combining rows from two or more tables using INNER/LEFT/RIGHT/FULL joins.",
+    "tags": ["sql", "data"],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "relational_algebra",
+    "name": "Relational Algebra",
+    "description": "Formal set-based operations (selection, projection, union) underlying SQL.",
+    "tags": ["sql", "theory"],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "indexing",
+    "name": "Database Indexing",
+    "description": "B-Trees, query plans, and how indexes affect query performance.",
+    "tags": ["sql", "data", "performance"],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "data_modeling",
+    "name": "Data Modeling",
+    "description": "Designing normalized and dimensional schemas for OLTP/OLAP workloads.",
+    "tags": ["data"],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "etl_pipelines",
+    "name": "ETL Pipelines",
+    "description": "Extracting, transforming, and loading data between systems reliably.",
+    "tags": ["data", "engineering"],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "cloud_fundamentals",
+    "name": "Cloud Fundamentals",
+    "description": "Core cloud concepts: compute, storage, networking, and IAM.",
+    "tags": ["cloud"],
+    "difficulty": "beginner"
+  },
+  {
+    "id": "data_warehousing",
+    "name": "Data Warehousing",
+    "description": "Designing and querying analytical warehouses at scale.",
+    "tags": ["data", "cloud"],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "distributed_systems",
+    "name": "Distributed Systems",
+    "description": "Fundamentals of scaling data processing across multiple machines.",
+    "tags": ["engineering", "cloud"],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "spark_basics",
+    "name": "Apache Spark Basics",
+    "description": "Distributed batch processing with Spark DataFrames and jobs.",
+    "tags": ["data", "engineering"],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "airflow_orchestration",
+    "name": "Workflow Orchestration",
+    "description": "Scheduling and monitoring data pipelines as DAGs (e.g. Airflow).",
+    "tags": ["data", "engineering"],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "data_engineering_capstone",
+    "name": "Data Engineering Job-Ready",
+    "description": "Capstone goal: production-grade pipelines, warehousing, and orchestration.",
+    "tags": ["data", "engineering", "capstone"],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "statistics_fundamentals",
+    "name": "Statistics Fundamentals",
+    "description": "Descriptive statistics, distributions, and hypothesis testing basics.",
+    "tags": ["math", "ml"],
+    "difficulty": "beginner"
+  },
+  {
+    "id": "machine_learning_basics",
+    "name": "Machine Learning Basics",
+    "description": "Supervised learning fundamentals: regression, classification, evaluation.",
+    "tags": ["ml"],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "api_design",
+    "name": "API Design",
+    "description": "Designing clean, versionable, resource-oriented service interfaces.",
+    "tags": ["backend"],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "rest_apis",
+    "name": "REST APIs",
+    "description": "Building and consuming HTTP APIs following REST conventions.",
+    "tags": ["backend"],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "containerization",
+    "name": "Containerization",
+    "description": "Packaging and running applications reproducibly with Docker.",
+    "tags": ["devops"],
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "kubernetes_basics",
+    "name": "Kubernetes Basics",
+    "description": "Deploying and scaling containerized workloads with Kubernetes.",
+    "tags": ["devops", "cloud"],
+    "difficulty": "advanced"
+  },
+  {
+    "id": "backend_engineering_capstone",
+    "name": "Backend Engineering Job-Ready",
+    "description": "Capstone goal: production-grade APIs, containers, and orchestration.",
+    "tags": ["backend", "devops", "capstone"],
+    "difficulty": "advanced"
+  }
+]
