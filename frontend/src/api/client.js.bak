@@ -265,7 +265,7 @@ export const apiClient = {
       let isReflexion = false;
 
       // Routing logic: Mastery >= 0.70 ? Advance : Replan/Reflexion
-      if (updatedProb >= 0.6) {
+      if (updatedProb >= 0.70) {
         // Mark session as learned
         if (mockDatabase.currentPath[mockDatabase.currentIndex]) {
           mockDatabase.currentPath[mockDatabase.currentIndex].if_learned = true;
@@ -299,7 +299,7 @@ export const apiClient = {
         current_path: [...mockDatabase.currentPath],
         last_quiz: nextQuiz,
         last_quiz_score: score,
-        is_passed: updatedProb >= 0.6,
+        is_passed: updatedProb >= 0.70,
         explanation: explanation
       };
     }

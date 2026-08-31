@@ -10,7 +10,7 @@ export default function QuizPanel({ quiz, onSubmitAnswers, isSubmitting, lastRes
         <CheckCircle2 size={36} color="var(--accent-sage)" style={{ margin: '0 auto 12px' }} />
         <h3 style={{ fontSize: '1.25rem', color: 'var(--text-main)' }}>Curriculum Completed</h3>
         <p style={{ color: 'var(--text-muted)', marginTop: '6px', maxWidth: '380px', margin: '6px auto 0', fontSize: '0.9rem' }}>
-          All target skill competencies have met the Bayesian mastery threshold (P ≥ 0.6).
+          All target skill competencies have met the Bayesian mastery threshold (P ≥ 0.70).
         </p>
       </div>
     );

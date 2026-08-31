@@ -116,8 +116,7 @@ def build_learning_graph():
 # Compile the graph
 # ---------------------------------------------------------
 
-    from langgraph.checkpoint.memory import MemorySaver
-    return graph.compile(checkpointer=MemorySaver())
+    return graph.compile()
 
 
 # ---------------------------------------------------------
