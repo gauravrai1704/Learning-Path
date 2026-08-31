@@ -6,6 +6,7 @@ This is the core of our Planner node.
 
 from __future__ import annotations
 
+import urllib.parse
 from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence, Union
 
@@ -28,8 +29,6 @@ class DesiredOutcome(BaseModel):
     name: str = Field(..., description="Skill name")
     level: Proficiency = Field(..., description="Desired proficiency when completed")
 
-
-import urllib.parse
 
 class RecommendedResource(BaseModel):
     title: str = Field(..., description="Name of the recommended course, book, guide, project, or resource")
