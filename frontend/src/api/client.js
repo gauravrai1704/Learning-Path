@@ -419,6 +419,18 @@ export const apiClient = {
   },
 
   /**
+   * Check backend connection health
+   */
+  async checkHealth() {
+    try {
+      const response = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(3000) });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
    * Fetch current session state
    */
   async getSessionState(sessionId) {

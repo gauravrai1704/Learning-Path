@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BookOpen, RefreshCw, Compass, GraduationCap, CheckCircle2, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BookOpen, RefreshCw, Compass, GraduationCap, CheckCircle2, RotateCcw, Activity } from 'lucide-react';
 import ChatIntake from './components/ChatIntake';
 import RoadmapView from './components/RoadmapView';
 import QuizPanel from './components/QuizPanel';
@@ -13,6 +13,16 @@ export default function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profile, setProfile] = useState(null);
   const [prefillQuestion, setPrefillQuestion] = useState(null);
+  const [isBackendOnline, setIsBackendOnline] = useState(null);
+
+  useEffect(() => {
+    const check = () => {
+      apiClient.checkHealth().then(setIsBackendOnline);
+    };
+    check();
+    const interval = setInterval(check, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Start new learning path session
   const handleStartSession = async (goal, background) => {
@@ -109,8 +119,13 @@ export default function App() {
           {/* Right Status */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#166534' }} />
-              <span>BKT Active</span>
+              <div style={{ 
+                width: '7px', 
+                height: '7px', 
+                borderRadius: '50%', 
+                background: isBackendOnline ? '#166534' : isBackendOnline === false ? '#DC2626' : '#D97706' 
+              }} />
+              <span>{isBackendOnline ? 'OpenAI Engine Live' : isBackendOnline === false ? 'Offline Demo Mock' : 'Connecting...'}</span>
             </div>
             {session && (
               <button 
