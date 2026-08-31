@@ -1,9 +1,14 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
-
+# Load .env from current directory, code directory, and parent directory
+env_path = Path(__file__).resolve().parent / ".env"
+parent_env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
+load_dotenv(dotenv_path=parent_env_path)
 load_dotenv()
 
 
