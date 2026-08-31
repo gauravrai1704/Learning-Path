@@ -2,9 +2,14 @@
 graph_builder.py
 
 Builds the LangGraph workflow for the PathFinder learning system.
+
+The graph pauses after quiz generation so that the learner can answer
+the quiz before the assessment node continues execution.
 """
 
 from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.types import interrupt
 
 from state import LearningState
 
@@ -23,6 +28,42 @@ from router import (
 )
 
 
+# ---------------------------------------------------------
+# QUIZ INPUT NODE
+# ---------------------------------------------------------
+
+def wait_for_quiz_answers(state: LearningState) -> dict:
+    """
+    Pause the LangGraph workflow and wait for the learner to submit
+    answers to the generated quiz.
+
+    The frontend will receive the quiz through the interrupt payload.
+
+    Execution resumes when Command(resume=answers) is supplied.
+    """
+
+    quiz = state.get("last_quiz")
+
+    if not quiz:
+        raise ValueError("No quiz available to present to learner.")
+
+    submitted_answers = interrupt(
+        {
+            "type": "quiz",
+            "quiz": quiz,
+            "current_index": state.get("current_index", 0),
+        }
+    )
+
+    return {
+        "submitted_answers": submitted_answers
+    }
+
+
+# ---------------------------------------------------------
+# GRAPH BUILDER
+# ---------------------------------------------------------
+
 def build_learning_graph():
     """
     Construct and compile the PathFinder LangGraph.
@@ -37,6 +78,8 @@ def build_learning_graph():
           |
         Quiz Generator
           |
+        Wait for Answers
+          |
         Assessor
           |
         Router
@@ -46,12 +89,11 @@ def build_learning_graph():
        |        |
        |     Quiz Generator
        |        |
+       |     Wait for Answers
+       |        |
        |     Assessor
        |        |
        └----> Router
-
-    The loop continues until the learner demonstrates sufficient
-    mastery and advances through the learning path.
     """
 
     graph = StateGraph(LearningState)
@@ -63,6 +105,7 @@ def build_learning_graph():
     graph.add_node("intake", intake_node)
     graph.add_node("planner", planner_node)
     graph.add_node("quiz_gen", quiz_gen_node)
+    graph.add_node("wait_for_answers", wait_for_quiz_answers)
     graph.add_node("assessor", assessor_node)
     graph.add_node("reflexion", reflexion_node)
     graph.add_node("advance", advance_node)
@@ -77,7 +120,9 @@ def build_learning_graph():
 
     graph.add_edge("planner", "quiz_gen")
 
-    graph.add_edge("quiz_gen", "assessor")
+    graph.add_edge("quiz_gen", "wait_for_answers")
+
+    graph.add_edge("wait_for_answers", "assessor")
 
     # ---------------------------------------------------------
     # Conditional routing after assessment
@@ -113,21 +158,23 @@ def build_learning_graph():
     graph.add_edge("reflexion", "quiz_gen")
 
     # ---------------------------------------------------------
-# Compile the graph
+    # Compile with checkpointing
+    # ---------------------------------------------------------
+
+    checkpointer = MemorySaver()
+
+    return graph.compile(checkpointer=checkpointer)
+
+
 # ---------------------------------------------------------
-
-    return graph.compile()
-
-
-# ---------------------------------------------------------
-# Create the compiled graph
+# Create compiled graph
 # ---------------------------------------------------------
 
 learning_graph = build_learning_graph()
 
 
 # ---------------------------------------------------------
-# Quick standalone test
+# Standalone test
 # ---------------------------------------------------------
 
 if __name__ == "__main__":
