@@ -5,7 +5,7 @@
  * 2. Intelligent Mock Engine fallback with authentic Corbett & Anderson BKT updates and Reflexion replanning.
  */
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // In-memory simulation state for standalone mock mode
 let mockDatabase = {

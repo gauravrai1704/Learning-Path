@@ -29,11 +29,38 @@ class DesiredOutcome(BaseModel):
     level: Proficiency = Field(..., description="Desired proficiency when completed")
 
 
+import urllib.parse
+
 class RecommendedResource(BaseModel):
-    title: str = Field(..., description="Name of the recommended course, project, or resource")
-    type: str = Field(..., description="One of: course, project, article, documentation, video")
+    title: str = Field(..., description="Name of the recommended course, book, guide, project, or resource")
+    type: str = Field(..., description="One of: course, book, article, documentation, video, project, tutorial")
     reason: str = Field(..., description="<=20 words on why this resource fits this session")
-    url: Optional[str] = Field(default=None, description="Direct URL, documentation link, or tutorial link to the resource")
+    url: Optional[str] = Field(default=None, description="Direct URL, reference link, or verified portal link to the resource")
+
+    @field_validator("url", mode="before")
+    @classmethod
+    def sanitize_url(cls, v: Any, info: Any) -> str:
+        url_str = str(v).strip() if v else ""
+        title = info.data.get("title", "") if hasattr(info, "data") and isinstance(info.data, dict) else ""
+        query = urllib.parse.quote_plus(title or "learning resource")
+
+        # If missing, placeholder, or invalid
+        if not url_str or url_str.lower() in ("none", "null", "") or "example.com" in url_str.lower():
+            return f"https://en.wikipedia.org/wiki/Special:Search?search={query}"
+
+        # Ensure scheme
+        if not (url_str.startswith("http://") or url_str.startswith("https://")):
+            url_str = f"https://{url_str}"
+
+        # If LLM generated deep slugs on platforms that frequently 404, convert to safe search query URLs
+        if "udemy.com/course/" in url_str:
+            return f"https://www.udemy.com/courses/search/?src=ukw&q={query}"
+        if "coursera.org/learn/" in url_str:
+            return f"https://www.coursera.org/search?query={query}"
+        if "edx.org/course/" in url_str:
+            return f"https://www.edx.org/search?q={query}"
+
+        return url_str
 
 
 class SessionItem(BaseModel):
@@ -45,7 +72,7 @@ class SessionItem(BaseModel):
     desired_outcome_when_completed: List[DesiredOutcome] = Field(default_factory=list)
     recommended_resources: List[RecommendedResource] = Field(
         default_factory=list,
-        description="1-3 concrete courses/projects/resources that teach this session's skills.",
+        description="1-3 concrete courses/books/projects/articles/videos that teach this session's skills.",
     )
 
 
@@ -77,7 +104,7 @@ learning_path_output_format = """
                 {"name": "Skill 1", "level": "intermediate"}
             ],
             "recommended_resources": [
-                {"title": "Name of course/project/resource", "type": "course", "reason": "Why it fits, <=20 words", "url": "https://example.com/resource"}
+                {"title": "Resource Name (Book, Course, Guide, or Official Reference)", "type": "article", "reason": "Why it fits, <=20 words", "url": "https://en.wikipedia.org/wiki/Subject_Topic"}
             ]
         }
     ]
@@ -86,22 +113,25 @@ learning_path_output_format = """
 
 learning_path_scheduler_system_prompt = f"""
 You are the **Learning Path Scheduler** agent in a personalized learning path system.
-Your role is to create, refine, or re-schedule a goal-oriented learning path.
+Your role is to create, refine, or re-schedule a goal-oriented learning path for ANY learning domain or subject (including Sciences, Mathematics, Languages, Arts, Music, Business & Finance, Humanities, Health & Fitness, Technology, Cooking, Philosophy, Law, and more).
 You will be given one of three tasks (A, B, or C). Follow the rules for that task exactly.
 
 **Universal Directives (all tasks)**:
 1. **Goal-Oriented**: The path must be the most efficient route to close the
-   learner's skill gaps and reach their goal.
-2. **Progressive**: Sessions must build from foundational to advanced skills.
+   learner's skill gaps and reach their goal in their chosen domain.
+2. **Progressive**: Sessions must build from foundational concepts to intermediate/advanced masteries.
 3. **Quality over Quantity**: Prefer a short, high-quality path (1-10 sessions).
-4. **Recommend Resources**: Every session must include 1-3 `recommended_resources`
-   (real, well-known course names, project ideas, or documentation/article
-   titles that teach that session's skills). For each resource, provide an authentic `url`
-   (e.g., official docs like `https://docs.python.org/3/`, reputable learning platforms,
-   or GitHub repos) when applicable. Prefer widely-known, genuinely
-   existing resources over invented ones; if unsure, recommend a project-based
-   resource instead (e.g. "Build a small X to practice Y") rather than a
-   fabricated course name.
+4. **Recommend Genuine, High-Quality Resources**: Every session must include 1-3 `recommended_resources` suited to the domain:
+   - **Resource Types**: `course`, `book`, `article`, `documentation`, `video`, `project`, or `tutorial`.
+   - **CRITICAL LINK RULE**: Provide ONLY genuine, 100% working URLs that are active and not broken.
+   - **Recommended Sources by Domain**:
+     - *General Knowledge & Concepts*: Wikipedia topic pages (`https://en.wikipedia.org/wiki/...`), Khan Academy (`https://www.khanacademy.org/`), Stanford Encyclopedia of Philosophy (`https://plato.stanford.edu/`), Nature/PubMed/NCBI for sciences.
+     - *Academic & University Courses*: MIT OpenCourseWare (`https://ocw.mit.edu/`), Harvard Online, OpenStax textbooks (`https://openstax.org/`).
+     - *Languages & Arts*: Duolingo, BBC Languages, Project Gutenberg (`https://www.gutenberg.org/`), IMSLP for music, Drawing/Music portals.
+     - *Business & Management*: Harvard Business Review, Investopedia (`https://www.investopedia.com/`), SEC / Federal Reserve / official financial education portals.
+     - *Technology & Engineering*: Official documentation hubs (e.g. `docs.python.org`, `developer.mozilla.org`, `react.dev`), W3Schools, DevDocs.
+     - *Video & Open Search*: Verified YouTube channel/search hubs or reputable learning search hubs.
+   - **DO NOT fabricate or guess specific deep course URL paths** (e.g., do not invent fake `/course/xyz-12345/` slugs that return 404s). If an exact subpage URL is not guaranteed to exist, provide the topic's canonical reference or verified portal search link.
 5. **Strict JSON Output**: Output ONLY the JSON in the format below. No other text.
 
 **Task A: New Path** — create a brand-new path from a learner profile.
