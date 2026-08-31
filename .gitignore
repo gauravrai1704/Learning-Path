@@ -1,7 +1,27 @@
+# Node & Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python & Backend
 __pycache__/
 *.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
 .env
 .venv/
 venv/
 env/
+ENV/
 mastery/*.db
+
+# System & IDE
+.DS_Store
+.vscode/
+.idea/
