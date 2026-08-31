@@ -45,43 +45,44 @@ Mastery is tracked per-skill with the standard Corbett & Anderson (1994) BKT upd
 
 ## Repo structure
 
+```
 Learning-Path/
-├── code/ # LangGraph orchestration + LLM agents
-│ ├── main.py # FastAPI app — wraps the graph in HTTP endpoints
-│ ├── llm.py # Shared LLM client (OpenAI, via .env)
-│ ├── state.py # Shared LangGraph state schema
-│ ├── nodes.py # intake / planner / quiz_gen / assessor / reflexion / advance
-│ ├── router.py # Conditional routing: advance / reflexion / complete
-│ ├── graph_builder.py # Compiles the StateGraph with a checkpointer
-│ ├── base_agent.py # LLM call wrapper with JSON-repair parsing
-│ ├── skill_gap_identifier.py # Goal + background -> structured skill gaps
-│ ├── skill_gap_prompts.py # Prompts for skill gap identification
-│ ├── learning_path_scheduler.py # schedule() / reflexion() / reschedule()
-│ ├── document_quiz_generator.py # Per-skill quiz generation + scoring
-│ ├── bkt_update.py # Bayesian Knowledge Tracing (pure math)
-│ └── test_*.py # End-to-end scripts for each stage of the loop
+├── code/                          # LangGraph orchestration + LLM agents
+│   ├── main.py                    # FastAPI app — wraps the graph in HTTP endpoints
+│   ├── llm.py                     # Shared LLM client (OpenAI, via .env)
+│   ├── state.py                   # Shared LangGraph state schema
+│   ├── nodes.py                   # intake / planner / quiz_gen / assessor / reflexion / advance
+│   ├── router.py                  # Conditional routing: advance / reflexion / complete
+│   ├── graph_builder.py           # Compiles the StateGraph with a checkpointer
+│   ├── base_agent.py              # LLM call wrapper with JSON-repair parsing
+│   ├── skill_gap_identifier.py    # Goal + background -> structured skill gaps
+│   ├── skill_gap_prompts.py       # Prompts for skill gap identification
+│   ├── learning_path_scheduler.py # schedule() / reflexion() / reschedule()
+│   ├── document_quiz_generator.py # Per-skill quiz generation + scoring
+│   ├── bkt_update.py              # Bayesian Knowledge Tracing (pure math)
+│   └── test_*.py                  # End-to-end scripts for each stage of the loop
 │
-├── skill_graph/ # Prerequisite graph (data layer)
-│ ├── nodes.json / edges.json # Curriculum skill graph
-│ ├── build_graph.py # NetworkX DAG construction + cycle validation
-│ └── query.py # get_path(), get_prerequisites()
+├── skill_graph/                   # Prerequisite graph (data layer)
+│   ├── nodes.json / edges.json    # Curriculum skill graph
+│   ├── build_graph.py             # NetworkX DAG construction + cycle validation
+│   └── query.py                   # get_path(), get_prerequisites()
 │
-├── mastery/ # Persistent (SQLite) mastery store
-│ ├── models.py
-│ └── store.py # Drop-in replacement for bkt_update.MasteryStore
+├── mastery/                       # Persistent (SQLite) mastery store
+│   ├── models.py
+│   └── store.py                   # Drop-in replacement for bkt_update.MasteryStore
 │
-├── frontend/ # React + Vite UI
-│ └── src/
-│ ├── components/
-│ │ ├── ChatIntake.jsx
-│ │ ├── RoadmapView.jsx
-│ │ ├── QuizPanel.jsx
-│ │ └── ProgressDashboard.jsx
-│ ├── api/client.js # Talks to the backend; falls back to a local mock if unreachable
-│ └── App.jsx
+├── frontend/                      # React + Vite UI
+│   └── src/
+│       ├── components/
+│       │   ├── ChatIntake.jsx
+│       │   ├── RoadmapView.jsx
+│       │   ├── QuizPanel.jsx
+│       │   └── ProgressDashboard.jsx
+│       ├── api/client.js          # Talks to the backend; falls back to a local mock if unreachable
+│       └── App.jsx
 │
 └── requirements.txt
-
+```
 
 ---
 
