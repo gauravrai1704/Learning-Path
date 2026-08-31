@@ -126,28 +126,114 @@ Sessions persist across requests via LangGraph's checkpointer, keyed by `session
 
 ---
 
-## Running locally
+## Getting Started & Running Locally
 
-### Backend
+### Prerequisites
+- **Python 3.10+** (with `pip` and virtual environment support)
+- **Node.js 18+** & **npm**
+- **OpenAI API Key** (for dynamic AI generation with LangGraph)
+
+---
+
+### Step 1: Clone and Configure Environment
+
+1. Clone the repository and navigate to the project directory:
+   ```bash
+   git clone https://github.com/gauravrai1704/Learning-Path.git
+   cd Learning-Path
+   ```
+
+2. Create a `.env` file in the `code/` directory (or project root):
+   ```bash
+   cp .env.example code/.env
+   ```
+   Open `code/.env` and insert your OpenAI API key:
+   ```ini
+   OPENAI_API_KEY=sk-proj-your-actual-openai-api-key
+   ```
+   > [!IMPORTANT]
+   > Ensure the variable name is explicitly formatted as `OPENAI_API_KEY=sk-...` (without extra quotes or spaces).
+
+---
+
+### Step 2: Start the Backend Server (Terminal 1)
+
+1. Navigate to the `code/` directory:
+   ```bash
+   cd code
+   ```
+
+2. *(Optional but recommended)* Create and activate a virtual environment:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate    # On Windows: .venv\Scripts\activate
+   ```
+
+3. Install the required Python dependencies:
+   ```bash
+   pip install -r ../requirements.txt
+   ```
+
+4. Start the FastAPI server:
+   ```bash
+   uvicorn main:app --reload --port 8000
+   ```
+   The backend API will be live at `http://localhost:8000`. You can test it with `curl http://localhost:8000/health`.
+
+---
+
+### Step 3: Start the Frontend UI (Terminal 2)
+
+1. In a new terminal window/tab, navigate to the `frontend/` directory:
+   ```bash
+   cd frontend
+   ```
+
+2. Install the frontend dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Launch the Vite development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Open your browser and navigate to **[http://localhost:5173](http://localhost:5173)**.
+
+---
+
+### Step 4: Using the Application
+
+1. **Enter Your Learning Goal**: Type any topic you wish to learn (e.g., *"I want to learn how to cook"* or *"Master Rust concurrency"*).
+2. **Specify Known Skills / Background**: Mention any prior knowledge (e.g., *"I know about basic spices"* or *"Experienced in C++"*).
+3. **Generate Learning Path**: Click **"Generate Learning Path"** (takes ~10–15s for the 4 LLM nodes to analyze skill gaps, construct the prerequisite sequence, and prepare the first diagnostic quiz).
+4. **Take Quizzes & Calibrate**: Complete the interactive quizzes to trigger real-time Bayesian Knowledge Tracing (BKT) probability updates and automated Reflexion replanning when needed.
+
+---
+
+### Running Tests & Verifying Core Loop
+
+You can run individual stage tests directly in the `code/` directory:
+
 ```bash
 cd code
-python3 -m pip install -r ../requirements.txt
-echo "OPENAI_API_KEY=sk-your-key" > .env
-uvicorn main:app --reload --port 8000
+
+# 1. Test Intake -> Planner -> Quiz Generation
+python3 test_pipeline.py
+
+# 2. Test Assessment + Correct Answers -> Mastery Update -> Advance
+python3 test_assessment.py
+
+# 3. Test Assessment + Incorrect Answers -> Reflexion Triggers -> Path Re-plan
+python3 test_reflexion.py
 ```
 
-### Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-Open [http://localhost:5173](http://localhost:5173). If the backend isn't reachable, the frontend automatically falls back to a local mock engine with real BKT math client-side, so UI work isn't blocked by backend availability.
+---
 
-### Testing the core loop directly
-```bash
-cd code
-python3 test_pipeline.py     # intake -> planner -> quiz generation
-python3 test_assessment.py   # + correct answers -> mastery update -> advance
-python3 test_reflexion.py    # + incorrect answers -> reflexion triggers -> path changes
-```
+### Troubleshooting & Dual-Mode Behavior
+
+- **"Offline Demo Mock" vs "OpenAI Engine Live"**:
+  - The status dot in the top right indicates backend connectivity.
+  - If the backend is offline or an endpoint errors, the frontend gracefully falls back to an offline mock engine so the UI remains interactive.
+  - If you see fallback behavior when the backend is running, verify that `OPENAI_API_KEY` is properly defined in `code/.env`.
