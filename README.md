@@ -21,6 +21,19 @@ This closed feedback loop is the core technical differentiator: the plan changes
 
 ---
 
+## Requirements coverage
+
+| Requirement | Where it lives |
+| --- | --- |
+| Conversational interface for goals in natural language | `frontend/src/components/ChatIntake.jsx` → `code/nodes.py::intake_node` |
+| Learner profiling engine (interests, level, completed courses, objectives) | `code/profile_builder.py` (structured extraction) → `learner_profile` in `code/state.py`, surfaced via `GET /session/{id}/profile` and `frontend/src/components/ProfileCard.jsx` |
+| Recommendation engine (courses, projects, resources) | `code/learning_path_scheduler.py::RecommendedResource` — every session includes 1–3 concrete resources, rendered in `frontend/src/components/RoadmapView.jsx` |
+| Personalized learning path generator with prerequisites and milestones | `code/skill_graph/` (prerequisite DAG) + `code/learning_path_scheduler.py` |
+| AI assistant explaining *why* each recommendation was made + answering queries | `code/explainer_agent.py`, exposed via `POST /session/{id}/explain`, UI in `frontend/src/components/ExplainPanel.jsx` ("Why this?" on every session) |
+| Dashboard visualizing progress, skill development, milestones, next actions | `frontend/src/components/ProgressDashboard.jsx` (BKT mastery per skill, completion %, replan count) |
+
+---
+
 ## Architecture
 
 ```mermaid

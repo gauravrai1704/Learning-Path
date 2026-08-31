@@ -16,6 +16,7 @@ from state import LearningState
 from llm import get_llm
 
 from skill_gap_identifier import identify_skill_gap_with_llm
+from profile_builder import build_learner_profile_with_llm
 from learning_path_scheduler import (
     schedule_learning_path_with_llm,
     reflexion_learning_path_with_llm,
@@ -67,12 +68,15 @@ def intake_node(state: LearningState) -> dict[str, Any]:
 
     Calls:
         SkillGapIdentifier
+        LearnerProfileBuilder
 
     Input state:
         learner_profile
 
     Output state:
         skill_gaps
+        learner_profile (enriched with interests, experience_level,
+                          completed_courses, objectives)
     """
 
     profile = state.get("learner_profile", {})
@@ -89,8 +93,17 @@ def intake_node(state: LearningState) -> dict[str, Any]:
         learner_information=learner_information,
     )
 
+    profile_fields = build_learner_profile_with_llm(
+        get_shared_llm(),
+        learning_goal=learning_goal,
+        learner_information=learner_information,
+    )
+
+    enriched_profile = {**profile, **profile_fields}
+
     return {
         "skill_gaps": skill_gaps,
+        "learner_profile": enriched_profile,
     }
 
 

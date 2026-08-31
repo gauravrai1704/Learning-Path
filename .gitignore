@@ -25,3 +25,4 @@ mastery/*.db
 .DS_Store
 .vscode/
 .idea/
+*.bak

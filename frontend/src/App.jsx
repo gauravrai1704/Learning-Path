@@ -4,11 +4,15 @@ import ChatIntake from './components/ChatIntake';
 import RoadmapView from './components/RoadmapView';
 import QuizPanel from './components/QuizPanel';
 import ProgressDashboard from './components/ProgressDashboard';
+import ExplainPanel from './components/ExplainPanel';
+import ProfileCard from './components/ProfileCard';
 import { apiClient } from './api/client';
 
 export default function App() {
   const [session, setSession] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [prefillQuestion, setPrefillQuestion] = useState(null);
 
   // Start new learning path session
   const handleStartSession = async (goal, background) => {
@@ -16,6 +20,11 @@ export default function App() {
     try {
       const response = await apiClient.startSession(goal, background);
       setSession(response);
+      // Fetch the explicit learner profile separately so a slow/failed
+      // profile call never blocks the main path from rendering.
+      apiClient.getLearnerProfile(response.session_id)
+        .then(setProfile)
+        .catch((err) => console.warn('Failed to fetch learner profile:', err));
     } catch (err) {
       console.error('Failed to start session:', err);
     } finally {
@@ -40,6 +49,8 @@ export default function App() {
   // Reset to create new session
   const handleResetSession = () => {
     setSession(null);
+    setProfile(null);
+    setPrefillQuestion(null);
   };
 
   return (
@@ -157,21 +168,30 @@ export default function App() {
                 onReset={handleResetSession}
               />
 
+              <ProfileCard profile={profile || session.learner_profile} />
+
               <RoadmapView
                 currentPath={session.current_path}
                 currentIndex={session.current_index}
                 isCompleted={session.is_completed}
+                onAskWhy={setPrefillQuestion}
               />
             </div>
 
             {/* Right Column: Quiz Verification & Assessment */}
-            <div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <QuizPanel
                 quiz={session.last_quiz}
                 onSubmitAnswers={handleSubmitAnswers}
                 isSubmitting={isSubmitting}
                 lastResult={session.last_quiz_score}
                 explanation={session.explanation}
+              />
+
+              <ExplainPanel
+                sessionId={session.session_id}
+                prefillQuestion={prefillQuestion}
+                onConsumePrefill={() => setPrefillQuestion(null)}
               />
             </div>
           </div>

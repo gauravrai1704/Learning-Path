@@ -1,9 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from uuid import uuid4
 
 from graph_builder import build_learning_graph
+from explainer_agent import explain_with_llm
+from nodes import get_shared_llm
 
 app = FastAPI()
 app.add_middleware(
@@ -30,6 +32,10 @@ class AnswerRequest(BaseModel):
     answers: list[int]
 
 
+class ExplainRequest(BaseModel):
+    question: str
+
+
 def to_frontend_shape(session_id: str, state: dict, is_completed: bool = False) -> dict:
     """Translate backend LearningState into the shape frontend/src/api/client.js expects."""
     quiz_result = state.get("quiz_result") or {}
@@ -39,6 +45,7 @@ def to_frontend_shape(session_id: str, state: dict, is_completed: bool = False) 
         "current_index": state.get("current_index", 0),
         "is_completed": is_completed,
         "skill_gaps": (state.get("skill_gaps") or {}).get("skill_gaps", []),
+        "learner_profile": state.get("learner_profile", {}),
         "mastery": state.get("mastery", {}),
         "current_path": state.get("current_path", []),
         "last_quiz": None if is_completed else state.get("last_quiz"),
@@ -90,6 +97,33 @@ def get_state(session_id: str):
     result = graph.get_state(config).values
     is_completed = result.get("current_index", 0) >= len(result.get("current_path", []))
     return to_frontend_shape(session_id, result, is_completed=is_completed)
+
+
+@app.get("/session/{session_id}/profile")
+def get_profile(session_id: str):
+    """Returns the explicit learner profile (interests, experience_level,
+    completed_courses, objectives) built during intake."""
+    config = {"configurable": {"thread_id": session_id}}
+    state = graph.get_state(config).values
+
+    if not state:
+        raise HTTPException(status_code=404, detail="Session not found.")
+
+    return state.get("learner_profile", {})
+
+
+@app.post("/session/{session_id}/explain")
+def explain_recommendation(session_id: str, req: ExplainRequest):
+    """Answers a learner's free-text question about why the system
+    recommended something, grounded in the session's current state."""
+    config = {"configurable": {"thread_id": session_id}}
+    state = graph.get_state(config).values
+
+    if not state:
+        raise HTTPException(status_code=404, detail="Session not found.")
+
+    result = explain_with_llm(get_shared_llm(), req.question, state)
+    return result
 
 
 @app.get("/health")

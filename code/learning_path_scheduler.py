@@ -29,6 +29,12 @@ class DesiredOutcome(BaseModel):
     level: Proficiency = Field(..., description="Desired proficiency when completed")
 
 
+class RecommendedResource(BaseModel):
+    title: str = Field(..., description="Name of the recommended course, project, or resource")
+    type: str = Field(..., description="One of: course, project, article, documentation, video")
+    reason: str = Field(..., description="<=20 words on why this resource fits this session")
+
+
 class SessionItem(BaseModel):
     id: str = Field(..., description="Session identifier, e.g. 'Session 1'")
     title: str
@@ -36,6 +42,10 @@ class SessionItem(BaseModel):
     if_learned: bool
     associated_skills: List[str] = Field(default_factory=list)
     desired_outcome_when_completed: List[DesiredOutcome] = Field(default_factory=list)
+    recommended_resources: List[RecommendedResource] = Field(
+        default_factory=list,
+        description="1-3 concrete courses/projects/resources that teach this session's skills.",
+    )
 
 
 class LearningPath(BaseModel):
@@ -64,6 +74,9 @@ learning_path_output_format = """
             "associated_skills": ["Skill 1", "Skill 2"],
             "desired_outcome_when_completed": [
                 {"name": "Skill 1", "level": "intermediate"}
+            ],
+            "recommended_resources": [
+                {"title": "Name of course/project/resource", "type": "course", "reason": "Why it fits, <=20 words"}
             ]
         }
     ]
@@ -80,7 +93,13 @@ You will be given one of three tasks (A, B, or C). Follow the rules for that tas
    learner's skill gaps and reach their goal.
 2. **Progressive**: Sessions must build from foundational to advanced skills.
 3. **Quality over Quantity**: Prefer a short, high-quality path (1-10 sessions).
-4. **Strict JSON Output**: Output ONLY the JSON in the format below. No other text.
+4. **Recommend Resources**: Every session must include 1-3 `recommended_resources`
+   (real, well-known course names, project ideas, or documentation/article
+   titles that teach that session's skills). Prefer widely-known, genuinely
+   existing resources over invented ones; if unsure, recommend a project-based
+   resource instead (e.g. "Build a small X to practice Y") rather than a
+   fabricated course name.
+5. **Strict JSON Output**: Output ONLY the JSON in the format below. No other text.
 
 **Task A: New Path** — create a brand-new path from a learner profile.
 All sessions get "if_learned": false.

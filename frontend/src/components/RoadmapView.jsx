@@ -1,7 +1,7 @@
 import React from 'react';
-import { CheckCircle2, Circle, ArrowDown, BookOpen, AlertCircle, Award } from 'lucide-react';
+import { CheckCircle2, Circle, ArrowDown, BookOpen, AlertCircle, Award, MessageCircleQuestion, Link2 } from 'lucide-react';
 
-export default function RoadmapView({ currentPath, currentIndex, isCompleted, onSelectSession }) {
+export default function RoadmapView({ currentPath, currentIndex, isCompleted, onSelectSession, onAskWhy }) {
   if (!currentPath || currentPath.length === 0) {
     return (
       <div className="paper-card" style={{ padding: '32px', textAlign: 'center' }}>
@@ -130,6 +130,43 @@ export default function RoadmapView({ currentPath, currentIndex, isCompleted, on
                           </span>
                         ))}
                       </div>
+                    )}
+
+                    {/* Recommended Resources */}
+                    {session.recommended_resources && session.recommended_resources.length > 0 && (
+                      <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {session.recommended_resources.map((res, rIdx) => (
+                          <div key={rIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '5px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                            <Link2 size={12} style={{ marginTop: '3px', flexShrink: 0 }} />
+                            <span>
+                              <strong style={{ color: 'var(--text-body)' }}>{res.title}</strong>
+                              {res.type ? ` (${res.type})` : ''} — {res.reason}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Ask why this session was recommended */}
+                    {onAskWhy && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAskWhy(`Why was "${session.title}" (${session.id}) recommended, and why is it in this position in the path?`);
+                        }}
+                        className="btn-secondary"
+                        style={{
+                          marginTop: '10px',
+                          padding: '4px 10px',
+                          fontSize: '0.74rem',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px'
+                        }}
+                      >
+                        <MessageCircleQuestion size={12} />
+                        Why this?
+                      </button>
                     )}
                   </div>
                 </div>

@@ -306,6 +306,49 @@ export const apiClient = {
   },
 
   /**
+   * Ask why a recommendation was made (or any question about the current path)
+   */
+  async explainRecommendation(sessionId, question) {
+    try {
+      const response = await fetch(`${API_BASE}/session/${sessionId}/explain`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
+      });
+      if (!response.ok) throw new Error('Network response not ok');
+      return await response.json();
+    } catch (err) {
+      console.warn('[API Client] Backend not detected, using mock explanation.', err);
+      const activeSession = mockDatabase.currentPath[mockDatabase.currentIndex];
+      return {
+        answer: `Mock mode: "${activeSession ? activeSession.title : 'this session'}" was placed here because its prerequisite skills were assessed as gaps in your intake, and it precedes sessions that build on those skills. Connect the backend for a live, state-grounded explanation.`,
+        referenced_session_id: activeSession ? activeSession.id : null
+      };
+    }
+  },
+
+  /**
+   * Fetch the explicit learner profile built during intake
+   */
+  async getLearnerProfile(sessionId) {
+    try {
+      const response = await fetch(`${API_BASE}/session/${sessionId}/profile`);
+      if (!response.ok) throw new Error('Network response not ok');
+      return await response.json();
+    } catch (err) {
+      console.warn('[API Client] Backend not detected, using mock profile.', err);
+      return {
+        learning_goal: mockDatabase.userGoal,
+        learner_information: mockDatabase.userBackground,
+        interests: ['SQL', 'Database Performance'],
+        experience_level: 'beginner',
+        completed_courses: [],
+        objectives: ['Write efficient multi-table SQL queries', 'Understand indexing and query plans']
+      };
+    }
+  },
+
+  /**
    * Fetch current session state
    */
   async getSessionState(sessionId) {
